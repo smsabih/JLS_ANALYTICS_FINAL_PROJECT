@@ -56,30 +56,110 @@ md"""
 """
 
 # ╔═╡ 375a9719-0f4b-4389-ae7f-39b6d82a81bf
-unique(df1[!, 1])
+begin
+	# Nodes and Edges Data
+	unique_values_nodes_id1 = unique(df1[!, 1])
+	unique_values_nodes_id2 = unique(df1[!, 2])
+	unique_values_nodes_id1, unique_values_nodes_id2
+end
+
+# ╔═╡ cea7c852-4c86-4bf4-a41a-e82bca37ffae
+begin
+	#Features for the Twitch Users Data
+	Views = unique(df2[!, 1])
+	Mature = unique(df2[!, 2])
+	Life_time = unique(df2[!, 3])
+	Created_at = unique(df2[!, 4])
+	Updated_at = unique(df2[!, 5])
+	Numeric_id = unique(df2[!, 6])
+	dead_account = unique(df2[!, 7])
+	language = unique(df2[!, 8])
+	affiliate = unique(df2[!, 9])
+	Views, Mature, Life_time, Created_at, Updated_at, Numeric_id, dead_account, 
+	language, affiliate
+end
+
+# ╔═╡ b3be9d3c-9b08-41e6-bae0-d19ce27041da
+md"""
+*Shape of Dataset*
+"""
 
 # ╔═╡ 0fc7329d-c245-48bc-b3d5-e366209bfd26
-# Shape of Dataset
+#Nodes and Edges Data
 size(df1)
 
+# ╔═╡ 9f9381ae-5953-4112-8a05-21d76cabfafe
+#Features for the Twitch Users Data
+size(df2)
+
+# ╔═╡ 20a5bedb-0726-4a9b-b837-be57defb6a3a
+md"""
+*List of columns*
+"""
+
 # ╔═╡ c9d0da04-df05-4869-ba0e-d34a11a90dfb
-# List of columns
+#Nodes and Edges Data
 names(df1) 
 
 # ╔═╡ 35f9a901-c7f4-4561-8e24-f62598b167de
-
+#Features for the Twitch Users Data
+names(df2) 
 
 # ╔═╡ b7bf2aa8-4d6b-4f58-bf6b-062e049b8296
-
+md"""
+*Count of Unique Values*
+"""
 
 # ╔═╡ 614aa0dc-66a2-4a4f-9ed2-d902aad255a1
-
+begin
+	#Number of Unique nodes
+	count_unique_values_nodes_id1 = length(unique_values_nodes_id1)
+	count_unique_values_nodes_id2 = length(unique_values_nodes_id2)
+	count_unique_values_nodes_id1, count_unique_values_nodes_id2
+end
 
 # ╔═╡ 0b410342-8190-4dc7-9dac-24ee09d8953f
+md"""
+Note: We can see that the number of nodes in numeric_id1 are different from numeric_id2. Which means that column 1 nodes have more edges compared to nodes in column 2.
+"""
 
+# ╔═╡ 3553dff9-2efd-41b1-8306-4498bef05220
+begin
+	#Number of Features for the Twitch Users Data
+	count_Views = length(Views)
+	count_Mature = length(Mature)
+	count_Life_time = length(Life_time)
+	count_Created_at = length(Created_at)
+	count_Updated_at = length(Updated_at)
+	count_Numeric_id = length(Numeric_id)
+	count_dead_account = length(dead_account)
+	count_language = length(language)
+	count_affiliate = length(affiliate)
+	count_Views, count_Mature, count_Life_time, count_Created_at, count_Updated_at, 
+	count_Numeric_id, count_dead_account, 
+	count_language, count_affiliate
+end
+
+# ╔═╡ fbe653ea-5194-465a-aaeb-e77a2ad3022e
+md"""
+**Descriptive Statistics**
+"""
+
+# ╔═╡ ef857760-9ab5-42c8-ba73-1453545fa28e
+md"""
+*Nodes and Edges Data*
+"""
+
+# ╔═╡ a1e147cc-f274-4102-a1c3-2e9fa00762c4
+ combine(groupby(df1, :numeric_id_1), nrow => :count)
+
+# ╔═╡ 2e823df4-76f6-4621-a56a-a29a4a4ddbff
+md"""
+*Features for the Twitch Users Data*
+"""
 
 # ╔═╡ dee47806-c344-47e4-8d83-6249150a36e4
-
+describe(df2)
 
 # ╔═╡ 6495eb72-d48f-4205-9f80-f8adc51ed1e0
 
@@ -450,12 +530,21 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─b15f8f75-46bc-4730-b8cd-7eeb12d01046
 # ╟─c1b676ab-7514-463b-acac-85afb8d4ecc9
 # ╠═375a9719-0f4b-4389-ae7f-39b6d82a81bf
+# ╠═cea7c852-4c86-4bf4-a41a-e82bca37ffae
+# ╟─b3be9d3c-9b08-41e6-bae0-d19ce27041da
 # ╠═0fc7329d-c245-48bc-b3d5-e366209bfd26
+# ╠═9f9381ae-5953-4112-8a05-21d76cabfafe
+# ╟─20a5bedb-0726-4a9b-b837-be57defb6a3a
 # ╠═c9d0da04-df05-4869-ba0e-d34a11a90dfb
 # ╠═35f9a901-c7f4-4561-8e24-f62598b167de
-# ╠═b7bf2aa8-4d6b-4f58-bf6b-062e049b8296
+# ╟─b7bf2aa8-4d6b-4f58-bf6b-062e049b8296
 # ╠═614aa0dc-66a2-4a4f-9ed2-d902aad255a1
-# ╠═0b410342-8190-4dc7-9dac-24ee09d8953f
+# ╟─0b410342-8190-4dc7-9dac-24ee09d8953f
+# ╠═3553dff9-2efd-41b1-8306-4498bef05220
+# ╟─fbe653ea-5194-465a-aaeb-e77a2ad3022e
+# ╟─ef857760-9ab5-42c8-ba73-1453545fa28e
+# ╠═a1e147cc-f274-4102-a1c3-2e9fa00762c4
+# ╟─2e823df4-76f6-4621-a56a-a29a4a4ddbff
 # ╠═dee47806-c344-47e4-8d83-6249150a36e4
 # ╠═6495eb72-d48f-4205-9f80-f8adc51ed1e0
 # ╠═100c654a-f24d-4d27-8357-f0df29dcf059
