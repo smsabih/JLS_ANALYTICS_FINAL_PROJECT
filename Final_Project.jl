@@ -5,7 +5,7 @@ using Markdown
 using InteractiveUtils
 
 # ╔═╡ f6926a24-41bb-488f-962d-d65dd025f756
-using DataFrames, CSV, Dates, HTTP, PlutoUI, Plots, StatPlots, Statistics, Flux
+using DataFrames, CSV, Dates, HTTP, PlutoUI, Plots, StatPlots, Statistics, Flux, GraphIO, Graphs, GraphPlot
 
 # ╔═╡ 3240aaf8-3be2-4d08-a25b-594bc8f8ab98
 md"""
@@ -295,14 +295,8 @@ md"""
 ### THE INITIAL GRAPH FOR THE NODES AND EDGES DATASET
 """
 
-# ╔═╡ ea17b48e-5c09-43ac-9e6a-0fb1e2f57a3d
-
-
-# ╔═╡ 061f5416-2497-452d-a53c-e4ce2ad07cde
-
-
-# ╔═╡ 4a58a67e-09fd-49ef-a3dd-ef0bb4de7f3c
-
+# ╔═╡ f5fd7c73-867a-4e4e-bdd0-40842d961da0
+graph = loadgraph(df1)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -311,6 +305,9 @@ CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+GraphIO = "aa1b3936-2fda-51b9-ab35-c553d3a640a2"
+GraphPlot = "a2cc645c-3eea-5389-862e-a155d0052231"
+Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
@@ -321,6 +318,9 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 CSV = "~0.9.11"
 DataFrames = "~1.2.2"
 Flux = "~0.12.1"
+GraphIO = "~0.6.0"
+GraphPlot = "~0.5.0"
+Graphs = "~1.4.1"
 HTTP = "~0.9.17"
 Plots = "~0.29.9"
 PlutoUI = "~0.7.1"
@@ -350,6 +350,12 @@ version = "3.3.1"
 
 [[ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
+
+[[ArnoldiMethod]]
+deps = ["LinearAlgebra", "Random", "StaticArrays"]
+git-tree-sha1 = "f87e559f87a45bece9c9ed97458d3afe98b1ebb9"
+uuid = "ec485272-7323-5ecc-a04f-4719b315124d"
+version = "0.1.0"
 
 [[Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -449,6 +455,12 @@ version = "3.40.0"
 [[CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
+
+[[Compose]]
+deps = ["Base64", "Colors", "DataStructures", "Dates", "IterTools", "JSON", "LinearAlgebra", "Measures", "Printf", "Random", "Requires", "Statistics", "UUIDs"]
+git-tree-sha1 = "c6461fc7c35a4bb8d00905df7adafcff1fe3a6bc"
+uuid = "a81c6b42-2e10-5240-aca2-a61377ecd94b"
+version = "0.9.2"
 
 [[Contour]]
 deps = ["StaticArrays"]
@@ -571,10 +583,10 @@ uuid = "f5851436-0d7a-5f13-b9de-f02708fd171a"
 version = "3.3.10+0"
 
 [[FilePathsBase]]
-deps = ["Dates", "Mmap", "Printf", "Test", "UUIDs"]
-git-tree-sha1 = "618835ab81e4a40acf215c98768978d82abc5d97"
+deps = ["Compat", "Dates", "Mmap", "Printf", "Test", "UUIDs"]
+git-tree-sha1 = "04d13bfa8ef11720c24e4d840c0033d145537df7"
 uuid = "48062228-2e41-5def-b9a4-89aafe57970f"
-version = "0.9.16"
+version = "0.9.17"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
@@ -669,11 +681,29 @@ git-tree-sha1 = "7bf67e9a481712b3dbe9cb3dac852dc4b1162e02"
 uuid = "7746bdde-850d-59dc-9ae8-88ece973131d"
 version = "2.68.3+0"
 
+[[GraphIO]]
+deps = ["DelimitedFiles", "Graphs", "Requires", "SimpleTraits"]
+git-tree-sha1 = "c243b56234de8afbb6838129e72a4dfccd230ccc"
+uuid = "aa1b3936-2fda-51b9-ab35-c553d3a640a2"
+version = "0.6.0"
+
+[[GraphPlot]]
+deps = ["ArnoldiMethod", "ColorTypes", "Colors", "Compose", "DelimitedFiles", "Graphs", "LinearAlgebra", "Random", "SparseArrays"]
+git-tree-sha1 = "5e51d9d9134ebcfc556b82428521fe92f709e512"
+uuid = "a2cc645c-3eea-5389-862e-a155d0052231"
+version = "0.5.0"
+
 [[Graphite2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "344bf40dcab1073aca04aa0df4fb092f920e4011"
 uuid = "3b182d85-2403-5c21-9c21-1e1f0cc25472"
 version = "1.3.14+0"
+
+[[Graphs]]
+deps = ["ArnoldiMethod", "DataStructures", "Distributed", "Inflate", "LinearAlgebra", "Random", "SharedArrays", "SimpleTraits", "SparseArrays", "Statistics"]
+git-tree-sha1 = "92243c07e786ea3458532e199eb3feee0e7e08eb"
+uuid = "86223c79-3864-5bf0-83f7-82e725a168b6"
+version = "1.4.1"
 
 [[Grisu]]
 git-tree-sha1 = "53bb909d1151e57e2484c3d1b53e19552b887fb2"
@@ -697,6 +727,11 @@ deps = ["InteractiveUtils", "MacroTools", "Test"]
 git-tree-sha1 = "006127162a51f0effbdfaab5ac0c83f8eb7ea8f3"
 uuid = "7869d1d1-7146-5819-86e3-90919afe41df"
 version = "0.4.4"
+
+[[Inflate]]
+git-tree-sha1 = "f5fc07d4e706b84f72d54eedcc1c13d92fb0871c"
+uuid = "d25df0c9-e2be-5dd7-82c8-3ad0b3e990b9"
+version = "0.1.2"
 
 [[IniFile]]
 deps = ["Test"]
@@ -735,6 +770,11 @@ version = "1.1.0"
 git-tree-sha1 = "7fd44fd4ff43fc60815f8e764c0f352b83c49151"
 uuid = "92d709cd-6900-40b7-9082-c6be49f344b6"
 version = "0.1.1"
+
+[[IterTools]]
+git-tree-sha1 = "05110a2ab1fc5f932622ffea2a003221f4782c18"
+uuid = "c8e1da08-722c-5040-9ed9-7db0dc04731e"
+version = "1.3.0"
 
 [[IterableTables]]
 deps = ["DataValues", "IteratorInterfaceExtensions", "Requires", "TableTraits", "TableTraitsUtils"]
@@ -1131,6 +1171,12 @@ git-tree-sha1 = "ee010d8f103468309b8afac4abb9be2e18ff1182"
 uuid = "992d4aef-0814-514b-bc4d-f2e9a6c4116f"
 version = "0.3.2"
 
+[[SimpleTraits]]
+deps = ["InteractiveUtils", "MacroTools"]
+git-tree-sha1 = "5d7e3f4e11935503d3ecaf7186eac40602e7d231"
+uuid = "699a6c99-e7fa-54fc-8d76-47d257e15c1d"
+version = "0.9.4"
+
 [[Sockets]]
 uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
 
@@ -1448,8 +1494,6 @@ version = "3.5.0+0"
 # ╟─2665a487-0e19-4f05-84cb-abf0e888a30b
 # ╟─57de6a90-eafe-4fee-bab9-afb7c090e27f
 # ╟─a661f1e7-a1c1-4deb-9e1b-861873e88d82
-# ╠═ea17b48e-5c09-43ac-9e6a-0fb1e2f57a3d
-# ╠═061f5416-2497-452d-a53c-e4ce2ad07cde
-# ╠═4a58a67e-09fd-49ef-a3dd-ef0bb4de7f3c
+# ╠═f5fd7c73-867a-4e4e-bdd0-40842d961da0
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
