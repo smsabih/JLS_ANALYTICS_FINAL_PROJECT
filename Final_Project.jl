@@ -7,6 +7,32 @@ using InteractiveUtils
 # ╔═╡ f6926a24-41bb-488f-962d-d65dd025f756
 using DataFrames, CSV, Dates, HTTP, PlutoUI, Plots, StatPlots, Statistics, Flux, GraphIO, Graphs, GraphPlot, PyCall, Conda
 
+# ╔═╡ 09586d02-bc6a-40cf-a6f3-f0ef94f9febd
+using Lathe
+
+# ╔═╡ a5641a7c-0555-45f1-9457-7dbe27a5af31
+using Lathe.preprocess: TrainTestSplit
+
+# ╔═╡ a10d4b6e-43a6-4271-a20c-a27ca667011e
+begin
+	using GLM
+	using StatsBase
+	using MLBase
+	using ROCAnalysis
+end
+
+# ╔═╡ e4bc3079-697a-4154-a56b-2163d0839852
+using ScikitLearn
+
+# ╔═╡ 05aab783-a9ef-49b7-848a-858d6bc9c875
+using ScikitLearn: fit!, predict
+
+# ╔═╡ 3526950c-7f02-47e3-8ebb-251010f605ee
+using ScikitLearn.CrossValidation: cross_val_score
+
+# ╔═╡ 6f128cc5-66df-4f58-803c-0dba77342083
+using DecisionTree
+
 # ╔═╡ 3240aaf8-3be2-4d08-a25b-594bc8f8ab98
 md"""
 # CAP 6318 - Final Project 
@@ -337,6 +363,22 @@ df2[! ,:created_at] = mod_year(df2[!, :created_at])
 # ╔═╡ 90c45f07-1123-4515-ade8-a20e1c0542f3
 df2[! ,:updated_at] = mod_year(df2[!, :updated_at])
 
+# ╔═╡ 311b7852-1640-4277-acb0-8caa1e0e0762
+md"""
+###### Changing the Days to integers
+"""
+
+# ╔═╡ 2ab7d7c5-ca5d-4b8f-9e2c-72a2ee650894
+function mod_day(x)
+	return Dates.value.(x)
+end
+
+# ╔═╡ a2ca9c5a-cba9-489b-9904-f72738bd1313
+df2[! ,:created_at] = mod_day(df2[!, :created_at])
+
+# ╔═╡ 0e0f83b2-938f-4e84-aa0c-470d16c6b390
+df2[! ,:updated_at] = mod_day(df2[!, :updated_at])
+
 # ╔═╡ 2eb602c3-8f17-43fc-a300-e75fe4e08452
 md"""
 ##### Updated Features Dataset after changing date
@@ -404,6 +446,12 @@ md"""
 ### THE INITIAL GRAPH FOR THE NODES AND EDGES DATASET
 """
 
+# ╔═╡ 51c237c4-5ded-44f4-b9d4-f90263bd0253
+md"""
+###### Using Julia package PyCall and Python packages pandas, networkx, and matplotlib to plot the initial graph for nodes and edges.
+
+"""
+
 # ╔═╡ f48573fc-95b7-40a6-9a1e-78315bbe37d3
 begin
 pd = pyimport("pandas")
@@ -450,10 +498,23 @@ md"""
 # DATASET AT THIS POINT
 df2
 
+# ╔═╡ def9e444-131e-444d-9867-ef01396b8c37
+md"""
+#### BASE MODELS
+"""
+
+# ╔═╡ 69fcb1b5-3580-4cec-a30f-b1a5b904a912
+md"""
+###### Using the ScikitLearn package from the Julia library
+"""
+
 # ╔═╡ b5a3600d-e87a-48aa-93a5-cbbc69b687d2
 md"""
-#### Logistic Regression
+#### Preprocessing
 """
+
+# ╔═╡ 0589811c-c94b-4e7a-9d63-b567dfc25705
+@sk_import linear_model: LogisticRegression
 
 # ╔═╡ 662c558e-d93a-4010-827f-8b4c23ea0c52
 md"""
@@ -483,27 +544,201 @@ Notes: Class seems balanced.
 """
 
 # ╔═╡ c50a699b-790e-43ca-9413-64d2ce7e9295
+md"""
+##### Train Test Split
+"""
 
+# ╔═╡ 9065469d-db09-47f8-be67-9d9915bca6bf
+md"""
+###### Training dataset 75% - Testing Dataset 25%
+"""
 
 # ╔═╡ 26e63026-8ea9-443a-ab33-34d19889eaf3
+train, test = TrainTestSplit(df2,.75)
 
-
-# ╔═╡ 1f66bc09-e6e0-4bab-9eb9-74f97a3d5a5b
-
+# ╔═╡ 1afb97a2-8d8e-4c7c-8b9e-7dacc11249c6
+md"""
+Note: Due to the size of the dataset, we deemed it sufficient to use 75% of the data as training and 25% as testing.
+"""
 
 # ╔═╡ 879c5498-b877-44ee-9352-d0982391832e
+begin
+	#TRAIN DATASET
+	X_train = convert(Array, train[[:views, :mature, :life_time, :created_at, 
+		:updated_at, :language]])
+	y_train = convert(Array, train[:affiliate])
+	
+	#TEST DATASET
+	X_test = convert(Array, test[[:views, :mature, :life_time, :created_at, 
+		:updated_at, :language]])
+	y_test = convert(Array, test[:affiliate])
+end
+
+# ╔═╡ d4d47777-22af-4c63-80cd-ecabe6279509
+md"""
+#### Regression Algorithm
+"""
+
+# ╔═╡ 1f66bc09-e6e0-4bab-9eb9-74f97a3d5a5b
+md"""
+##### Logistic Regression
+"""
+
+# ╔═╡ cbb45603-f310-4556-aa61-bb56a95c2140
+model = LogisticRegression(fit_intercept=true)
+
+# ╔═╡ d51e8039-defb-4ff1-b0bc-3ca8785c8b76
+# Train the model. 
+fit!(model, X_train, y_train)
+
+# ╔═╡ d7b559e7-fe91-4eed-9882-7f9920cd9ee5
+begin
+	accuracy_logistic = sum(predict(model, X_test) .== y_test) / length(y_test)
+	with_terminal() do
+		println("accuracy: $accuracy_logistic")
+	end
+end
+
+# ╔═╡ dd36605d-91e8-4e0e-8b00-b6aabbcc3109
+cross_val_logistic = cross_val_score(LogisticRegression(), X_train, y_train; cv=5)
+
+# ╔═╡ 8a263263-7ee7-4033-bba7-4c74247d0eb2
+md"""
+Note: The Base Logistic Regression Model score is low.
+"""
+
+# ╔═╡ 268c190c-3bca-43ff-93b3-4cd7ddefa731
+md"""
+#### Tree Algorithms
+"""
+
+# ╔═╡ 39a8003c-2b53-45b6-a101-d634156304d1
+md"""
+##### Decision Tree Classifier
+"""
+
+# ╔═╡ be8a5ec7-fcab-4f89-a4ce-a396416c0f67
+md"""
+###### Using DecisionTree package from the Julia library.
+"""
+
+# ╔═╡ b5476740-7825-4dfc-b309-d99a754967da
+model_CART = DecisionTreeClassifier()
+
+# ╔═╡ 9728951b-61b5-4344-b989-6de2209da8c6
+features = X_train
+
+# ╔═╡ 4c68c76e-62a7-4ecb-a737-74c814fb041a
+labels = y_train
+
+# ╔═╡ 82b774cd-7254-49b7-9293-f0c3dad7e431
+fit!(model_CART, features, labels)
+
+# ╔═╡ 77e121f0-a72b-4e59-b2a0-9a3dcfad2901
+begin
+	accuracy_CART = sum(predict(model_CART, X_test) .== y_test) / length(y_test)
+	with_terminal() do
+		println("accuracy: $accuracy_CART")
+	end
+end
+
+# ╔═╡ eb312d12-c2ba-416a-9735-ebcf5e190918
+cross_val_CART = cross_val_score(model_CART, features, labels, cv=5)
+
+# ╔═╡ bc97c003-f8db-4fa9-b9c4-7203b80b3bef
+md"""
+##### Random Forest Classifier
+"""
+
+# ╔═╡ 044c883d-a9e1-49de-a2c2-b775728632ac
+model_RFC = RandomForestClassifier()
+
+# ╔═╡ 579f31dd-a765-498d-b0ae-5093672ba65f
+fit!(model_RFC, features, labels)
+
+# ╔═╡ 87759a8f-0b4b-41ce-88a7-27dacb30d9e5
+begin
+	accuracy_RFC = sum(predict(model_CART, X_test) .== y_test) / length(y_test)
+	with_terminal() do
+		println("accuracy: $accuracy_RFC")
+	end
+end
+
+# ╔═╡ 2616a5dc-4a16-4581-a757-50acf50ff3ea
+cross_val_RFC = cross_val_score(model_RFC, features, labels, cv=5)
+
+# ╔═╡ ed87de0c-7ac6-4393-a902-cc4af64f2c78
+md"""
+##### Random Forest Regressor
+"""
+
+# ╔═╡ 98dc6349-0cb6-4bd4-98e1-9f5253c75d65
+model_RFR = RandomForestRegressor()
+
+# ╔═╡ 61bfbbf8-dc65-4953-a855-0766b1ee0861
+fit!(model_RFR, features, labels)
+
+# ╔═╡ 60bb22e2-1b8a-4aee-8c46-ca83db675cb5
+begin
+	accuracy_RFR = sum(predict(model_RFR, X_test) .== y_test) / length(y_test)
+	with_terminal() do
+		println("accuracy: $accuracy_RFR")
+	end
+end
+
+# ╔═╡ a014cb4c-edeb-4124-8feb-81339742e195
+cross_val_RFR = cross_val_score(model_RFR, features, labels, cv=5)
+
+# ╔═╡ b49a0dff-0901-4eaa-bbf4-750ecfcfd096
+md"""
+##### AdaBoost Stump Classifier
+"""
+
+# ╔═╡ 291a07b8-6903-4364-8057-8780a87818d4
+model_ADA = AdaBoostStumpClassifier()
+
+# ╔═╡ 366ce026-ccd8-4b6e-bcc6-438486bd9e60
+fit!(model_ADA, features, labels)
+
+# ╔═╡ f4da99ea-bacb-487e-9843-474e88a6305c
+begin
+	accuracy_ADA = sum(predict(model_ADA, X_test) .== y_test) / length(y_test)
+	with_terminal() do
+		println("accuracy: $accuracy_ADA")
+	end
+end
+
+# ╔═╡ 69d8267e-8f28-4d30-a9e7-89075ed27a6a
+cross_val_ADA = cross_val_score(model_ADA, features, labels, cv=5)
+
+# ╔═╡ e5f90438-eb52-455a-a968-8ea76f0589fd
+md"""
+##### Results of Base Algorithms
+"""
+
+# ╔═╡ 3b19829c-434d-4fd7-8195-ec847a055bbd
+Results_Base_Algorithm = DataFrame(Algorithm =["Logistic Regression", "Decision Tree Classifier", 
+	"Random Forest Regressor", "Random Forest Classifier", "AdaBoost Stump Classifier"] 
+	,Accuracy = [accuracy_logistic, accuracy_CART, accuracy_RFR, accuracy_RFC, 
+	accuracy_ADA])
+
+# ╔═╡ 1f375328-b435-4b5b-9fd1-2647bfb09a36
+maximum(Results_Base_Algorithm[!, :Accuracy])
+
+# ╔═╡ 93bc4c0a-4921-48ad-8c63-bd899b49a594
+md"""
+Note: AdaBoost Stump Classifier performs at the highest efficiency in predicting the target variable. We will try to tune the hyperparameters for this algorithm.
+"""
+
+# ╔═╡ a0878f0c-b4a6-4c5e-b9ea-4e9b2f070c49
+md"""
+#### Hyperparameter Tuning
+"""
+
+# ╔═╡ 5eee4ca3-61f7-46fc-a85e-697045a98a41
 
 
-# ╔═╡ 0cbdf702-3f08-4922-9456-b5fc89b379eb
-
-
-# ╔═╡ 55a3f811-5b6d-4ab0-9b79-298e86153b83
-
-
-# ╔═╡ a2584d65-7251-400e-8716-e7c9f3cd50a0
-
-
-# ╔═╡ 04e49fb1-a651-4e05-95b8-76e849a36144
+# ╔═╡ 502050f5-c3a8-498e-89fa-231f0f11d7e1
 
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -513,30 +748,44 @@ CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 Conda = "8f4d0f93-b110-5947-807f-2305c1781a2d"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+DecisionTree = "7806a523-6efd-50cb-b5f6-3fa6f1930dbb"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+GLM = "38e38edf-8417-5370-95a0-9cbb8c7f171a"
 GraphIO = "aa1b3936-2fda-51b9-ab35-c553d3a640a2"
 GraphPlot = "a2cc645c-3eea-5389-862e-a155d0052231"
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+Lathe = "38d8eb38-e7b1-11e9-0012-376b6c802672"
+MLBase = "f0e99cf1-93fa-52ec-9ecc-5026115318e0"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
+ROCAnalysis = "f535d66d-59bb-5153-8d2b-ef0a426c6aff"
+ScikitLearn = "3646fa90-6ef7-5e7e-9f22-8aca16db6324"
 StatPlots = "60ddc479-9b66-56df-82fc-76a74619b69c"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 CSV = "~0.8.5"
 Conda = "~1.6.0"
 DataFrames = "~0.20.2"
+DecisionTree = "~0.10.11"
 Flux = "~0.8.3"
+GLM = "~1.4.2"
 GraphIO = "~0.5.0"
 GraphPlot = "~0.3.1"
 Graphs = "~0.10.3"
 HTTP = "~0.9.17"
+Lathe = "~0.0.9"
+MLBase = "~0.8.0"
 Plots = "~0.29.9"
 PlutoUI = "~0.7.1"
 PyCall = "~1.92.5"
+ROCAnalysis = "~0.3.0"
+ScikitLearn = "~0.6.2"
 StatPlots = "~0.9.2"
+StatsBase = "~0.32.2"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -738,6 +987,12 @@ version = "0.4.13"
 deps = ["Printf"]
 uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 
+[[DecisionTree]]
+deps = ["DelimitedFiles", "Distributed", "LinearAlgebra", "Random", "ScikitLearnBase", "Statistics", "Test"]
+git-tree-sha1 = "123adca1e427dc8abc5eec5040644e7842d53c92"
+uuid = "7806a523-6efd-50cb-b5f6-3fa6f1930dbb"
+version = "0.10.11"
+
 [[DelimitedFiles]]
 deps = ["Mmap"]
 uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
@@ -860,6 +1115,12 @@ version = "1.0.10+0"
 [[Future]]
 deps = ["Random"]
 uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
+
+[[GLM]]
+deps = ["Distributions", "LinearAlgebra", "Printf", "Random", "Reexport", "SparseArrays", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns", "StatsModels"]
+git-tree-sha1 = "dc577ad8b146183c064b30e747e3afc6d6dfd62b"
+uuid = "38e38edf-8417-5370-95a0-9cbb8c7f171a"
+version = "1.4.2"
 
 [[GR]]
 deps = ["Base64", "DelimitedFiles", "LinearAlgebra", "Printf", "Random", "Serialization", "Sockets", "Test", "UUIDs"]
@@ -1021,6 +1282,12 @@ git-tree-sha1 = "e5b909bcf985c5e2605737d2ce278ed791b89be6"
 uuid = "dd4b983a-f0e5-5f8d-a1b7-129d4a5fb1ac"
 version = "2.10.1+0"
 
+[[Lathe]]
+deps = ["DataFrames", "Random"]
+git-tree-sha1 = "5f64e72da1435568cd8362d6d0f364d210df3e9e"
+uuid = "38d8eb38-e7b1-11e9-0012-376b6c802672"
+version = "0.0.9"
+
 [[LazyArtifacts]]
 deps = ["Artifacts", "Pkg"]
 uuid = "4af54fe1-eca0-43a8-85a7-787d91b784e3"
@@ -1110,6 +1377,12 @@ deps = ["Artifacts", "IntelOpenMP_jll", "JLLWrappers", "LazyArtifacts", "Libdl",
 git-tree-sha1 = "5455aef09b40e5020e1520f551fa3135040d4ed0"
 uuid = "856f044c-d86e-5d09-b602-aeab76dc8ba7"
 version = "2021.1.1+2"
+
+[[MLBase]]
+deps = ["IterTools", "Random", "Reexport", "StatsBase", "Test"]
+git-tree-sha1 = "f63a8d37429568b8c4384d76c4a96fc2897d6ddf"
+uuid = "f0e99cf1-93fa-52ec-9ecc-5026115318e0"
+version = "0.8.0"
 
 [[MacroTools]]
 deps = ["Markdown", "Random"]
@@ -1329,6 +1602,12 @@ version = "2.4.2"
 deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]
 uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 
+[[ROCAnalysis]]
+deps = ["DataFrames", "LinearAlgebra", "Random", "Requires", "SpecialFunctions", "Test"]
+git-tree-sha1 = "fed3f005bb6d4a39f848b7f713cf83c820d7bea4"
+uuid = "f535d66d-59bb-5153-8d2b-ef0a426c6aff"
+version = "0.3.0"
+
 [[Random]]
 deps = ["Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
@@ -1371,6 +1650,18 @@ version = "0.3.0+0"
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 
+[[ScikitLearn]]
+deps = ["Compat", "Conda", "DataFrames", "Distributed", "IterTools", "LinearAlgebra", "MacroTools", "Parameters", "Printf", "PyCall", "Random", "ScikitLearnBase", "SparseArrays", "StatsBase", "VersionParsing"]
+git-tree-sha1 = "b2dbb141575879beb3ad771fb0314a22617586d3"
+uuid = "3646fa90-6ef7-5e7e-9f22-8aca16db6324"
+version = "0.6.2"
+
+[[ScikitLearnBase]]
+deps = ["LinearAlgebra", "Random", "Statistics"]
+git-tree-sha1 = "7877e55c1523a4b336b433da39c8e8c08d2f221f"
+uuid = "6e75b9c4-186b-50bd-896f-2d2496a4843e"
+version = "0.5.0"
+
 [[SentinelArrays]]
 deps = ["Dates", "Random"]
 git-tree-sha1 = "f45b34656397a1f6e729901dc9ef679610bd12b5"
@@ -1383,6 +1674,11 @@ uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 [[SharedArrays]]
 deps = ["Distributed", "Mmap", "Random", "Serialization"]
 uuid = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
+
+[[ShiftedArrays]]
+git-tree-sha1 = "22395afdcf37d6709a5a0766cc4a5ca52cb85ea0"
+uuid = "1277b4bf-5013-50f5-be3d-901d8477a67a"
+version = "1.0.0"
 
 [[Showoff]]
 deps = ["Dates", "Grisu"]
@@ -1447,6 +1743,12 @@ deps = ["Rmath", "SpecialFunctions"]
 git-tree-sha1 = "ced55fd4bae008a8ea12508314e725df61f0ba45"
 uuid = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 version = "0.9.7"
+
+[[StatsModels]]
+deps = ["DataAPI", "DataStructures", "LinearAlgebra", "Printf", "ShiftedArrays", "SparseArrays", "StatsBase", "StatsFuns", "Tables"]
+git-tree-sha1 = "3db41a7e4ae7106a6bcff8aa41833a4567c04655"
+uuid = "3eaba693-59b7-5ba5-a881-562e759f1c8d"
+version = "0.6.21"
 
 [[SuiteSparse]]
 deps = ["Libdl", "LinearAlgebra", "Serialization", "SparseArrays"]
@@ -1708,6 +2010,10 @@ version = "3.5.0+0"
 # ╠═c3ced2f2-a065-4f46-acb9-ce44f2c03ec1
 # ╠═23072f60-5cf6-441d-bc90-973e9d6ec0c4
 # ╠═90c45f07-1123-4515-ade8-a20e1c0542f3
+# ╟─311b7852-1640-4277-acb0-8caa1e0e0762
+# ╠═2ab7d7c5-ca5d-4b8f-9e2c-72a2ee650894
+# ╠═a2ca9c5a-cba9-489b-9904-f72738bd1313
+# ╠═0e0f83b2-938f-4e84-aa0c-470d16c6b390
 # ╟─2eb602c3-8f17-43fc-a300-e75fe4e08452
 # ╠═6cb34c59-03fe-4d8c-8adf-e72a980b5779
 # ╟─a1b85414-de6e-46fc-bab1-19cacb51e3d4
@@ -1718,6 +2024,7 @@ version = "3.5.0+0"
 # ╟─2665a487-0e19-4f05-84cb-abf0e888a30b
 # ╟─57de6a90-eafe-4fee-bab9-afb7c090e27f
 # ╟─a661f1e7-a1c1-4deb-9e1b-861873e88d82
+# ╟─51c237c4-5ded-44f4-b9d4-f90263bd0253
 # ╠═f48573fc-95b7-40a6-9a1e-78315bbe37d3
 # ╠═a07482c6-fbf5-4d87-8ada-5b574fb02246
 # ╠═a7f520b8-f5bd-4996-a5c2-7b2578f04c43
@@ -1730,20 +2037,65 @@ version = "3.5.0+0"
 # ╟─a4020f2a-604e-46e3-aa2b-a5a43373dc6c
 # ╟─6b715f0b-9258-4c43-a26c-0808ce65154b
 # ╠═594147ec-3407-4cc2-ad41-fd872be13229
+# ╟─def9e444-131e-444d-9867-ef01396b8c37
+# ╟─69fcb1b5-3580-4cec-a30f-b1a5b904a912
 # ╟─b5a3600d-e87a-48aa-93a5-cbbc69b687d2
+# ╠═09586d02-bc6a-40cf-a6f3-f0ef94f9febd
+# ╠═a5641a7c-0555-45f1-9457-7dbe27a5af31
+# ╠═a10d4b6e-43a6-4271-a20c-a27ca667011e
+# ╠═e4bc3079-697a-4154-a56b-2163d0839852
+# ╠═0589811c-c94b-4e7a-9d63-b567dfc25705
+# ╠═05aab783-a9ef-49b7-848a-858d6bc9c875
+# ╠═3526950c-7f02-47e3-8ebb-251010f605ee
 # ╟─662c558e-d93a-4010-827f-8b4c23ea0c52
 # ╠═6c91c3b6-53cf-41f8-ad57-ce1ad54eb6b1
 # ╟─5aed60ca-6db6-4bc3-91bf-685833409d20
 # ╠═e9947565-f679-4bbd-9378-2b4a2b5727b0
 # ╠═96d3577a-fb89-44c9-84f1-150d7d73bcae
 # ╟─45efafaa-2bad-4394-a383-a6b5a79f3f26
-# ╠═c50a699b-790e-43ca-9413-64d2ce7e9295
+# ╟─c50a699b-790e-43ca-9413-64d2ce7e9295
+# ╟─9065469d-db09-47f8-be67-9d9915bca6bf
 # ╠═26e63026-8ea9-443a-ab33-34d19889eaf3
-# ╠═1f66bc09-e6e0-4bab-9eb9-74f97a3d5a5b
+# ╟─1afb97a2-8d8e-4c7c-8b9e-7dacc11249c6
 # ╠═879c5498-b877-44ee-9352-d0982391832e
-# ╠═0cbdf702-3f08-4922-9456-b5fc89b379eb
-# ╠═55a3f811-5b6d-4ab0-9b79-298e86153b83
-# ╠═a2584d65-7251-400e-8716-e7c9f3cd50a0
-# ╠═04e49fb1-a651-4e05-95b8-76e849a36144
+# ╟─d4d47777-22af-4c63-80cd-ecabe6279509
+# ╟─1f66bc09-e6e0-4bab-9eb9-74f97a3d5a5b
+# ╠═cbb45603-f310-4556-aa61-bb56a95c2140
+# ╠═d51e8039-defb-4ff1-b0bc-3ca8785c8b76
+# ╠═d7b559e7-fe91-4eed-9882-7f9920cd9ee5
+# ╠═dd36605d-91e8-4e0e-8b00-b6aabbcc3109
+# ╟─8a263263-7ee7-4033-bba7-4c74247d0eb2
+# ╟─268c190c-3bca-43ff-93b3-4cd7ddefa731
+# ╟─39a8003c-2b53-45b6-a101-d634156304d1
+# ╟─be8a5ec7-fcab-4f89-a4ce-a396416c0f67
+# ╠═6f128cc5-66df-4f58-803c-0dba77342083
+# ╠═b5476740-7825-4dfc-b309-d99a754967da
+# ╠═9728951b-61b5-4344-b989-6de2209da8c6
+# ╠═4c68c76e-62a7-4ecb-a737-74c814fb041a
+# ╠═82b774cd-7254-49b7-9293-f0c3dad7e431
+# ╠═77e121f0-a72b-4e59-b2a0-9a3dcfad2901
+# ╠═eb312d12-c2ba-416a-9735-ebcf5e190918
+# ╟─bc97c003-f8db-4fa9-b9c4-7203b80b3bef
+# ╠═044c883d-a9e1-49de-a2c2-b775728632ac
+# ╠═579f31dd-a765-498d-b0ae-5093672ba65f
+# ╠═87759a8f-0b4b-41ce-88a7-27dacb30d9e5
+# ╠═2616a5dc-4a16-4581-a757-50acf50ff3ea
+# ╟─ed87de0c-7ac6-4393-a902-cc4af64f2c78
+# ╠═98dc6349-0cb6-4bd4-98e1-9f5253c75d65
+# ╠═61bfbbf8-dc65-4953-a855-0766b1ee0861
+# ╠═60bb22e2-1b8a-4aee-8c46-ca83db675cb5
+# ╠═a014cb4c-edeb-4124-8feb-81339742e195
+# ╟─b49a0dff-0901-4eaa-bbf4-750ecfcfd096
+# ╠═291a07b8-6903-4364-8057-8780a87818d4
+# ╠═366ce026-ccd8-4b6e-bcc6-438486bd9e60
+# ╠═f4da99ea-bacb-487e-9843-474e88a6305c
+# ╠═69d8267e-8f28-4d30-a9e7-89075ed27a6a
+# ╟─e5f90438-eb52-455a-a968-8ea76f0589fd
+# ╠═3b19829c-434d-4fd7-8195-ec847a055bbd
+# ╠═1f375328-b435-4b5b-9fd1-2647bfb09a36
+# ╟─93bc4c0a-4921-48ad-8c63-bd899b49a594
+# ╟─a0878f0c-b4a6-4c5e-b9ea-4e9b2f070c49
+# ╠═5eee4ca3-61f7-46fc-a85e-697045a98a41
+# ╠═502050f5-c3a8-498e-89fa-231f0f11d7e1
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
