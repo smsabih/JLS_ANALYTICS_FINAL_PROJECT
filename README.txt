@@ -1,3 +1,8 @@
+AUTHORS:
+Justin Kim
+Syed Muhammad Sabih
+Louis Mitchell
+
 About the dataset:
 
 A social network of Twitch users which was collected from the public API in Spring 2018. Nodes are Twitch users and edges are mutual follower relationships between them. The graph forms a single strongly connected component without missing attributes. The machine learning tasks related to the graph are count data regression and node classification. There are 6 specific tasks:
